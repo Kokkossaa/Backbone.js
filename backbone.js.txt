@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Backbone.js Todo List</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://underscorejs.org/underscore-min.js"></script>
+  <script src="https://backbonejs.org/backbone-min.js"></script>
+</head>
+<body>
+
+  <h1>Backbone.js Todo List</h1>
+
+  <div id="todoapp">
+    <input id="new-todo" type="text" placeholder="Add new todo" />
+    <ul id="todo-list"></ul>
+  </div>
+
+  <script>
+    var Todo = Backbone.Model.extend({ defaults: { title: '', completed: false } });
+    var TodoList = Backbone.Collection.extend({ model: Todo });
+    var TodoView = Backbone.View.extend({
+      tagName: 'li',
+      template: _.template('<input type="checkbox" <%= completed ? "checked" : "" %> /><%= title %>'),
+      events: { 'change input': 'toggleCompleted' },
+      toggleCompleted: function () { this.model.set('completed', !this.model.get('completed')); },
+      render: function () { this.$el.html(this.template(this.model.toJSON())); return this; }
+    });
+    var AppView = Backbone.View.extend({
+      el: '#todoapp',
+      initialize: function () { this.input = this.$('#new-todo'); this.list = this.$('#todo-list'); this.listenTo(this.collection, 'add', this.addOne); },
+      events: { 'keypress #new-todo': 'createTodo' },
+      createTodo: function (e) { 
+        if (e.which === 13 && this.input.val().trim()) { 
+          this.collection.add({ title: this.input.val().trim() }); 
+          this.input.val(''); 
+        } 
+      },
+      addOne: function (todo) { var view = new TodoView({ model: todo }); this.list.append(view.render().el); }
+    });
+    var todos = new TodoList();
+    var appView = new AppView({ collection: todos });
+  </script>
+
+</body>
+</html>
